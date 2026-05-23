@@ -11,6 +11,9 @@ instance/*.db
 instance/*.sqlite
 *.db-journal
 
+# Сгенерированные отчёты
+*.xlsx
+
 # Секреты
 .env
 

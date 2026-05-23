@@ -12,10 +12,8 @@ email-validator==2.2.0      # валидация email в формах
 Werkzeug==3.0.4             # хеширование паролей
 python-dotenv==1.0.1        # загрузка переменных из .env
 
-# ===== Аналитика и отчёты =====
-pandas==2.2.3               # расчёты статистики, импорт CSV
+# ===== Отчёты =====
 openpyxl==3.1.5             # экспорт в Excel
-reportlab==4.2.5            # экспорт в PDF
 
 # ===== AI-модуль =====
 anthropic==0.39.0           # Claude API (Sonnet / Haiku)

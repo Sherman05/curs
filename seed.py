@@ -149,6 +149,12 @@ def seed_database() -> dict:
             db.session.add(a)
             attendance_count += 1
 
+    db.session.flush()
+
+    # --- 8. Демо-объекты для защиты (готовый тест, попытка, доп. задачи) ---
+    # Эти объекты не зависят от AI — чтобы на защите всё работало без ключа.
+    demo = _seed_demo_objects(subjects, students)
+
     db.session.commit()
     logger.info("Тестовые данные успешно сохранены.")
 
@@ -160,5 +166,107 @@ def seed_database() -> dict:
         "студентов": len(students),
         "оценок": grades_count,
         "записей посещаемости": attendance_count,
+        "демо-тест": demo["test"],
+        "демо-прохождение": demo["attempt"],
+        "демо-доп.задачи": demo["remedial"],
         "пароль для всех аккаунтов": DEMO_PASSWORD,
+    }
+
+
+def _seed_demo_objects(subjects: list, students: list) -> dict:
+    """Создать готовые демо-объекты (тест, попытку, доп. задачи) без AI."""
+    import json
+
+    from models import Material, Test, TestAttempt, RemedialAssignment
+    from models.ai_module import MATERIAL_TEST
+    from services import ai_service
+
+    # Предмет для демо-теста — «Базы данных».
+    subj_db = next((s for s in subjects if s.name == "Базы данных"), subjects[0])
+
+    # Готовый тест с фиксированными вопросами (не зависит от AI).
+    test_data = {
+        "title": "Демонстрационный тест: основы баз данных",
+        "questions": [
+            {"text": "Что такое первичный ключ (PRIMARY KEY)?",
+             "options": ["Уникальный идентификатор строки",
+                         "Любой индекс таблицы",
+                         "Внешняя ссылка на другую таблицу",
+                         "Команда удаления"],
+             "correct_index": 0, "points": 1},
+            {"text": "Какая команда выбирает данные из таблицы?",
+             "options": ["INSERT", "SELECT", "UPDATE", "DELETE"],
+             "correct_index": 1, "points": 1},
+            {"text": "Что обеспечивает нормализация БД?",
+             "options": ["Ускорение сети",
+                         "Снижение избыточности данных",
+                         "Шифрование паролей",
+                         "Резервное копирование"],
+             "correct_index": 1, "points": 1},
+            {"text": "Что делает оператор JOIN?",
+             "options": ["Удаляет таблицу",
+                         "Объединяет строки из нескольких таблиц",
+                         "Создаёт пользователя",
+                         "Сортирует индекс"],
+             "correct_index": 1, "points": 1},
+        ],
+    }
+    material = Material(
+        teacher_id=subj_db.teacher_id, subject_id=subj_db.id,
+        topic="Основы баз данных", type=MATERIAL_TEST,
+        content=test_data["title"], ai_model_used="demo",
+    )
+    db.session.add(material)
+    db.session.flush()
+    test = Test(
+        material_id=material.id,
+        questions_json=json.dumps(test_data, ensure_ascii=False),
+        total_points=sum(q["points"] for q in test_data["questions"]),
+    )
+    db.session.add(test)
+    db.session.flush()
+
+    # Демо-прохождение: НЕ слабый студент (students[:6] — слабые), изучающий
+    # «Базы данных». Так student1 остаётся без попытки и может пройти тест
+    # вживую на защите, а у преподавателя уже есть результат для показа.
+    attempt_student = next(
+        (st for st in students[6:]
+         if any(g.subject_id == subj_db.id for g in st.grades)), None)
+    attempt_created = False
+    if attempt_student:
+        answers = {"0": 0, "1": 1, "2": 1, "3": 0}  # последний — неверный
+        score, _ = ai_service.score_attempt(test_data, answers)
+        db.session.add(TestAttempt(
+            student_id=attempt_student.id, test_id=test.id,
+            answers_json=json.dumps(answers, ensure_ascii=False), score=score,
+        ))
+        attempt_created = True
+
+    # Демо-доп.задачи для слабого студента (первый из «слабых» — students[0]).
+    weak_student = students[0]
+    weak_grade = weak_student.grades[0] if weak_student.grades else None
+    remedial_created = False
+    if weak_grade:
+        remedial_data = {
+            "subject": next(s.name for s in subjects if s.id == weak_grade.subject_id),
+            "tasks": [
+                {"topic": "Базовые понятия", "text": "Повторите ключевые определения "
+                 "темы и решите 3 задачи из методички.",
+                 "hint": "Начните с примеров, разобранных на лекции.",
+                 "approach": "Пошаговый разбор условия и применение формул."},
+                {"topic": "Практика", "text": "Решите типовую задачу средней сложности.",
+                 "hint": "Используйте алгоритм из конспекта.",
+                 "approach": "Декомпозиция задачи на подзадачи."},
+            ],
+        }
+        db.session.add(RemedialAssignment(
+            student_id=weak_student.id, subject_id=weak_grade.subject_id,
+            content_json=json.dumps(remedial_data, ensure_ascii=False),
+        ))
+        remedial_created = True
+
+    return {
+        "test": material.topic,
+        "attempt": "создано" if attempt_created else "нет",
+        "remedial": "создано" if remedial_created else "нет",
     }
