@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Результат теста{% endblock %}
+{% block content %}
+<h4>Результат: {{ test_data.title }}</h4>
+<div class="alert alert-info">
+    Набрано баллов: <strong>{{ score }} из {{ test.total_points }}</strong>
+    ({{ attempt.completed_at.strftime('%d.%m.%Y %H:%M') }})
+</div>
+
+<h6>Разбор ответов</h6>
+<ol>
+    {% for d in details %}
+    <li class="mb-2">
+        {{ d.text }}
+        {% if d.is_correct %}
+            <span class="badge bg-success">Верно (+{{ d.points }})</span>
+        {% else %}
+            <span class="badge bg-danger">Неверно</span>
+        {% endif %}
+        <ul>
+            {% for opt in d.options %}
+            {% set oi = loop.index0 %}
+            <li class="{% if oi == d.correct_index %}text-success fw-bold{% elif oi == d.chosen %}text-danger{% endif %}">
+                {{ opt }}
+                {% if oi == d.correct_index %} ✓ (правильный){% endif %}
+                {% if oi == d.chosen and oi != d.correct_index %} ← ваш ответ{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </li>
+    {% endfor %}
+</ol>
+<a href="{{ url_for('student.tests_list') }}" class="btn btn-link">К списку тестов</a>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Генерация теста{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h4 class="mb-3">Генерация теста (AI)</h4>
+        {% if not subjects %}
+            <div class="alert alert-warning">За вами не закреплено ни одного предмета.</div>
+        {% else %}
+        <form method="POST" action="{{ url_for('ai.generate') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label class="form-label">Предмет</label>
+                <select name="subject_id" class="form-select" required>
+                    {% for s in subjects %}
+                        <option value="{{ s.id }}">{{ s.name }} (сем. {{ s.semester }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Тема теста</label>
+                <input type="text" name="topic" class="form-control" required
+                       placeholder="например: Нормализация баз данных">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Количество вопросов</label>
+                <input type="number" name="question_count" class="form-control"
+                       value="10" min="1" max="20">
+            </div>
+            <button type="submit" class="btn btn-primary">Сгенерировать</button>
+            <a href="{{ url_for('ai.index') }}" class="btn btn-link">Назад</a>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

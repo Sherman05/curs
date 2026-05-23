@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Редактирование теста{% endblock %}
+{% block content %}
+<h4 class="mb-3">Проверьте и отредактируйте тест</h4>
+<p class="text-muted">Предмет: <strong>{{ subject.name }}</strong> · Тема: <strong>{{ topic }}</strong></p>
+
+<form method="POST" action="{{ url_for('ai.save') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+    <input type="hidden" name="topic" value="{{ topic }}">
+
+    <div class="mb-3">
+        <label class="form-label">Название теста</label>
+        <input type="text" name="title" class="form-control" value="{{ test_data.title }}">
+    </div>
+
+    {% for q in test_data.questions %}
+    {% set qi = loop.index0 %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <label class="form-label">Вопрос {{ loop.index }}</label>
+            <input type="text" name="q{{ qi }}_text" class="form-control mb-2" value="{{ q.text }}">
+            {% for opt in q.options %}
+            {% set oi = loop.index0 %}
+            <div class="input-group mb-1">
+                <div class="input-group-text">
+                    <input type="radio" name="q{{ qi }}_correct" value="{{ oi }}"
+                           {% if q.correct_index == oi %}checked{% endif %}>
+                </div>
+                <input type="text" name="q{{ qi }}_opt{{ oi }}" class="form-control" value="{{ opt }}">
+            </div>
+            {% endfor %}
+            <div class="mt-2" style="max-width:160px">
+                <label class="form-label small">Баллы</label>
+                <input type="number" name="q{{ qi }}_points" class="form-control form-control-sm"
+                       value="{{ q.points }}" min="1">
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-success">Сохранить тест</button>
+    <a href="{{ url_for('ai.new') }}" class="btn btn-link">Отмена</a>
+</form>
+{% endblock %}

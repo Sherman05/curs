@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ test_data.title }}{% endblock %}
+{% block content %}
+<h4 class="mb-3">{{ test_data.title }}</h4>
+<form method="POST" action="{{ url_for('student.test_submit', test_id=test.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for q in test_data.questions %}
+    {% set qi = loop.index0 %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="fw-bold">{{ loop.index }}. {{ q.text }}</p>
+            {% for opt in q.options %}
+            {% set oi = loop.index0 %}
+            <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="q{{ qi }}" id="q{{ qi }}_{{ oi }}" value="{{ oi }}">
+                <label class="form-check-label" for="q{{ qi }}_{{ oi }}">{{ opt }}</label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Завершить тест</button>
+</form>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Доступные тесты{% endblock %}
+{% block content %}
+<h4 class="mb-3">Доступные тесты</h4>
+{% if items %}
+<table class="table table-striped">
+    <thead><tr><th>Тема</th><th>Предмет</th><th>Баллов</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+    {% for it in items %}
+        <tr>
+            <td>{{ it.material.topic }}</td>
+            <td>{{ it.material.subject.name }}</td>
+            <td>{{ it.test.total_points }}</td>
+            <td>
+                {% if it.attempt %}
+                    <span class="badge bg-success">Пройден: {{ it.attempt.score }}</span>
+                {% else %}
+                    <span class="badge bg-secondary">Не пройден</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if it.attempt %}
+                    <a href="{{ url_for('student.test_result', test_id=it.test.id) }}"
+                       class="btn btn-sm btn-outline-secondary">Результат</a>
+                {% else %}
+                    <a href="{{ url_for('student.test_take', test_id=it.test.id) }}"
+                       class="btn btn-sm btn-primary">Пройти</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">Доступных тестов пока нет.</div>
+{% endif %}
+{% endblock %}
