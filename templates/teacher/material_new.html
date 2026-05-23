@@ -1,14 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Генерация теста{% endblock %}
+{% block title %}Генерация материала{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-7">
-        <h4 class="mb-3">Генерация теста (AI)</h4>
+        <h4 class="mb-3">Генерация учебного материала (AI)</h4>
         {% if not subjects %}
             <div class="alert alert-warning">За вами не закреплено ни одного предмета.</div>
         {% else %}
         <form method="POST" action="{{ url_for('ai.generate') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label class="form-label">Тип материала</label>
+                <select name="material_type" id="materialType" class="form-select">
+                    {% for value, label in material_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="mb-3">
                 <label class="form-label">Предмет</label>
                 <select name="subject_id" class="form-select" required>
@@ -18,12 +26,12 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label">Тема теста</label>
+                <label class="form-label">Тема</label>
                 <input type="text" name="topic" class="form-control" required
                        placeholder="например: Нормализация баз данных">
             </div>
-            <div class="mb-3">
-                <label class="form-label">Количество вопросов</label>
+            <div class="mb-3" id="questionCountBlock">
+                <label class="form-label">Количество вопросов (для теста)</label>
                 <input type="number" name="question_count" class="form-control"
                        value="10" min="1" max="20">
             </div>
@@ -33,4 +41,13 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Поле "количество вопросов" нужно только для теста.
+const sel = document.getElementById('materialType');
+const block = document.getElementById('questionCountBlock');
+function toggle() { if (block) block.style.display = (sel.value === 'test') ? '' : 'none'; }
+if (sel) { sel.addEventListener('change', toggle); toggle(); }
+</script>
 {% endblock %}

@@ -27,7 +27,7 @@ from sqlalchemy import func
 from models import (
     db, Grade, Material, RemedialAssignment, Student, Subject, Test, TestAttempt,
 )
-from models.ai_module import MATERIAL_TEST
+from models.ai_module import MATERIAL_TEST, MATERIAL_LECTURE, MATERIAL_THEORY
 from services import ai_service, analytics, export
 from utils.decorators import student_required
 
@@ -213,6 +213,37 @@ def _subject_avg(student_id: int, subject_id: int) -> float | None:
     return (db.session.query(func.avg(Grade.value))
             .filter(Grade.student_id == student_id,
                     Grade.subject_id == subject_id).scalar())
+
+
+@bp.route("/materials")
+@login_required
+@student_required
+def materials_list():
+    """Справочные материалы (лекции/теория) по предметам, которые изучает студент."""
+    student = _current_student()
+    subject_ids = _student_subject_ids(student)
+    materials = (Material.query
+                 .filter(Material.type.in_([MATERIAL_LECTURE, MATERIAL_THEORY]),
+                         Material.subject_id.in_(subject_ids or [-1]))
+                 .order_by(Material.created_at.desc())
+                 .all())
+    return render_template("student/materials_list.html", materials=materials)
+
+
+@bp.route("/materials/<int:material_id>")
+@login_required
+@student_required
+def material_view(material_id: int):
+    """Чтение справочного материала (только по своим предметам)."""
+    student = _current_student()
+    material = db.session.get(Material, material_id)
+    if material is None or material.type not in (MATERIAL_LECTURE, MATERIAL_THEORY):
+        abort(404)
+    if material.subject_id not in _student_subject_ids(student):
+        abort(403)
+    content = json.loads(material.content)
+    return render_template("student/material_view.html",
+                           material=material, content=content)
 
 
 @bp.route("/export/record")

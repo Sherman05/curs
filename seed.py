@@ -265,8 +265,55 @@ def _seed_demo_objects(subjects: list, students: list) -> dict:
         ))
         remedial_created = True
 
+    # Демо-конспект лекции и демо-теория (предмет «Базы данных»).
+    from models.ai_module import MATERIAL_LECTURE, MATERIAL_THEORY
+    lecture_data = {
+        "title": "Конспект лекции: реляционная модель данных",
+        "introduction": "Реляционная модель описывает данные в виде таблиц "
+                        "(отношений), связанных по ключам.",
+        "sections": [
+            {"heading": "Таблицы и отношения",
+             "content": "Данные хранятся в таблицах. Строка — запись, столбец — атрибут.",
+             "key_points": ["Таблица = отношение", "Строка = кортеж"]},
+            {"heading": "Ключи",
+             "content": "Первичный ключ однозначно идентифицирует строку; внешний "
+                        "ключ ссылается на первичный ключ другой таблицы.",
+             "key_points": ["PRIMARY KEY уникален", "FOREIGN KEY обеспечивает целостность"]},
+            {"heading": "Нормализация",
+             "content": "Нормализация снижает избыточность и устраняет аномалии "
+                        "обновления за счёт декомпозиции таблиц.",
+             "key_points": ["1НФ, 2НФ, 3НФ", "Меньше дублирования данных"]},
+        ],
+        "summary": "Реляционная модель — основа большинства современных СУБД.",
+    }
+    db.session.add(Material(
+        teacher_id=subj_db.teacher_id, subject_id=subj_db.id,
+        topic="Реляционная модель данных", type=MATERIAL_LECTURE,
+        content=json.dumps(lecture_data, ensure_ascii=False), ai_model_used="demo"))
+
+    theory_data = {
+        "title": "Теория: язык SQL",
+        "definitions": [
+            {"term": "SQL", "definition": "язык структурированных запросов к реляционным БД."},
+            {"term": "DDL", "definition": "подмножество SQL для определения структуры (CREATE, ALTER)."},
+            {"term": "DML", "definition": "подмножество SQL для работы с данными (SELECT, INSERT)."},
+        ],
+        "concepts": [
+            {"name": "Выборка данных", "explanation": "Оператор SELECT извлекает строки "
+             "по условию.", "example": "SELECT * FROM students WHERE group_id = 1;"},
+            {"name": "Соединение таблиц", "explanation": "JOIN объединяет строки из "
+             "нескольких таблиц по условию.", "example": "SELECT ... FROM grades JOIN subjects ON ..."},
+        ],
+        "summary": "SQL — стандартный язык работы с реляционными базами данных.",
+    }
+    db.session.add(Material(
+        teacher_id=subj_db.teacher_id, subject_id=subj_db.id,
+        topic="Язык SQL", type=MATERIAL_THEORY,
+        content=json.dumps(theory_data, ensure_ascii=False), ai_model_used="demo"))
+
     return {
         "test": material.topic,
         "attempt": "создано" if attempt_created else "нет",
         "remedial": "создано" if remedial_created else "нет",
+        "лекция+теория": "создано",
     }

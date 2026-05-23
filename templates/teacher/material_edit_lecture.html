@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Редактирование конспекта{% endblock %}
+{% block content %}
+<h4 class="mb-3">Проверьте и отредактируйте конспект лекции</h4>
+<p class="text-muted">Предмет: <strong>{{ subject.name }}</strong> · Тема: <strong>{{ topic }}</strong></p>
+
+<form method="POST" action="{{ url_for('ai.save') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="material_type" value="lecture">
+    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+    <input type="hidden" name="topic" value="{{ topic }}">
+
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" name="title" class="form-control" value="{{ data.title }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Введение</label>
+        <textarea name="introduction" class="form-control" rows="3">{{ data.introduction }}</textarea>
+    </div>
+
+    {% for sec in data.sections %}
+    {% set i = loop.index0 %}
+    <div class="card mb-3"><div class="card-body">
+        <label class="form-label">Раздел {{ loop.index }} — заголовок</label>
+        <input type="text" name="sec{{ i }}_heading" class="form-control mb-2" value="{{ sec.heading }}">
+        <label class="form-label">Содержание</label>
+        <textarea name="sec{{ i }}_content" class="form-control mb-2" rows="4">{{ sec.content }}</textarea>
+        <label class="form-label">Ключевые тезисы (по одному на строку)</label>
+        <textarea name="sec{{ i }}_kp" class="form-control" rows="3">{{ sec.key_points | join('\n') }}</textarea>
+    </div></div>
+    {% endfor %}
+
+    <div class="mb-3">
+        <label class="form-label">Заключение</label>
+        <textarea name="summary" class="form-control" rows="3">{{ data.summary }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a href="{{ url_for('ai.new') }}" class="btn btn-link">Отмена</a>
+</form>
+{% endblock %}

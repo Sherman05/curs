@@ -327,6 +327,166 @@ def generate_remedial_tasks(subject_name: str, weak_topics: list[str] | None = N
     return data
 
 
+def _generate_structured(prompt: str, validate_fn, demo_fn, temperature: float,
+                         teacher_id, label: str) -> dict:
+    """Обобщённая генерация структурированного контента (лекция/теория).
+
+    Повторяет логику generate_test: demo-режим без ключа, одна повторная
+    попытка при сбое парсинга, логирование, понятный RuntimeError.
+    """
+    if not _is_configured():
+        logger.warning("AI не настроен (нет ключа) — генерирую demo-%s.", label)
+        data = demo_fn()
+        _log_generation(teacher_id, prompt, json.dumps(data, ensure_ascii=False), 0)
+        return validate_fn(data)
+
+    try:
+        client = _get_client()
+    except Exception as e:
+        logger.exception("Не удалось создать клиент Anthropic.")
+        raise RuntimeError("AI-сервис недоступен: проверьте пакет anthropic "
+                           "и ключ ANTHROPIC_API_KEY.") from e
+
+    raw, tokens = "", 0
+    try:
+        raw, tokens = _call_model(client, prompt, temperature=temperature)
+        data = validate_fn(_extract_json(raw))
+    except Exception as first_err:
+        logger.warning("Ответ AI (%s) не распарсился (%s). Повтор...", label, first_err)
+        try:
+            retry = prompt + "\n\nВАЖНО: верни ТОЛЬКО валидный JSON, без текста."
+            raw2, tokens2 = _call_model(client, retry, temperature=temperature)
+            tokens += tokens2
+            raw = raw + "\n---retry---\n" + raw2
+            data = validate_fn(_extract_json(raw2))
+        except Exception as e:
+            _log_generation(teacher_id, prompt, f"ОШИБКА: {raw}", tokens)
+            logger.exception("AI не смог сгенерировать материал (%s).", label)
+            raise RuntimeError(
+                "Не удалось сгенерировать материал: модель вернула некорректный "
+                "формат. Попробуйте изменить тему или повторить попытку."
+            ) from e
+
+    _log_generation(teacher_id, prompt, raw, tokens)
+    logger.info("Сгенерирован материал (%s), токенов=%d.", label, tokens)
+    return data
+
+
+# ---- Конспект лекции ----
+def _validate_lecture(data: dict) -> dict:
+    if not isinstance(data, dict):
+        raise ValueError("Ответ не является объектом JSON.")
+    sections = data.get("sections")
+    if not isinstance(sections, list) or not sections:
+        raise ValueError("Отсутствует непустой список разделов.")
+    norm_sections = []
+    for i, sec in enumerate(sections):
+        heading = str(sec.get("heading") or "").strip()
+        content = str(sec.get("content") or "").strip()
+        if not heading or not content:
+            raise ValueError(f"Раздел {i + 1}: пустой заголовок или содержание.")
+        kp = sec.get("key_points") or []
+        kp = [str(x).strip() for x in kp if str(x).strip()] if isinstance(kp, list) else []
+        norm_sections.append({"heading": heading, "content": content, "key_points": kp})
+    return {
+        "title": str(data.get("title") or "").strip() or "Конспект лекции",
+        "introduction": str(data.get("introduction") or "").strip(),
+        "sections": norm_sections,
+        "summary": str(data.get("summary") or "").strip(),
+    }
+
+
+def _demo_lecture(subject_name: str, topic: str) -> dict:
+    return {
+        "title": f"Конспект лекции: {topic}",
+        "introduction": f"[DEMO] Вводная часть по теме «{topic}» предмета "
+                        f"«{subject_name}». Задайте ANTHROPIC_API_KEY для реальной генерации.",
+        "sections": [{
+            "heading": f"Раздел {i + 1}",
+            "content": f"[DEMO] Развёрнутое объяснение материала раздела {i + 1} "
+                       f"по теме «{topic}». Здесь приводятся определения и пояснения.",
+            "key_points": [f"Ключевой тезис {i + 1}.1", f"Ключевой тезис {i + 1}.2"],
+        } for i in range(4)],
+        "summary": f"[DEMO] Выводы по теме «{topic}».",
+    }
+
+
+def generate_lecture(subject_name: str, topic: str, teacher_id: int | None = None) -> dict:
+    """Сгенерировать развёрнутый конспект лекции."""
+    prompt = (
+        f"Составь развёрнутый конспект лекции по теме «{topic}» по предмету "
+        f"«{subject_name}». 4–6 разделов с заголовками, в каждом 2-4 параграфа "
+        f"объяснения и 2-4 ключевых тезиса. Язык — русский. Стиль — академический, "
+        f"понятный для студентов 3 курса.\n\n"
+        "Верни ОТВЕТ СТРОГО в формате JSON без пояснений и markdown:\n"
+        '{\n  "title": "string",\n  "introduction": "string",\n'
+        '  "sections": [{"heading": "string", "content": "string", '
+        '"key_points": ["string"]}],\n  "summary": "string"\n}\n'
+    )
+    return _generate_structured(
+        prompt, _validate_lecture, lambda: _demo_lecture(subject_name, topic),
+        temperature=0.5, teacher_id=teacher_id, label="лекцию")
+
+
+# ---- Теория ----
+def _validate_theory(data: dict) -> dict:
+    if not isinstance(data, dict):
+        raise ValueError("Ответ не является объектом JSON.")
+    definitions = data.get("definitions") or []
+    concepts = data.get("concepts") or []
+    if not isinstance(definitions, list) or not isinstance(concepts, list):
+        raise ValueError("Поля definitions/concepts должны быть списками.")
+    if not definitions and not concepts:
+        raise ValueError("Материал пуст: нет ни определений, ни концепций.")
+    norm_defs = [{"term": str(d.get("term") or "").strip(),
+                  "definition": str(d.get("definition") or "").strip()}
+                 for d in definitions if str(d.get("term") or "").strip()]
+    norm_concepts = [{"name": str(c.get("name") or "").strip(),
+                      "explanation": str(c.get("explanation") or "").strip(),
+                      "example": str(c.get("example") or "").strip()}
+                     for c in concepts if str(c.get("name") or "").strip()]
+    return {
+        "title": str(data.get("title") or "").strip() or "Теоретический материал",
+        "definitions": norm_defs,
+        "concepts": norm_concepts,
+        "summary": str(data.get("summary") or "").strip(),
+    }
+
+
+def _demo_theory(subject_name: str, topic: str) -> dict:
+    return {
+        "title": f"Теория: {topic}",
+        "definitions": [
+            {"term": f"Термин {i + 1}",
+             "definition": f"[DEMO] Определение термина {i + 1} по теме «{topic}»."}
+            for i in range(4)],
+        "concepts": [
+            {"name": f"Концепция {i + 1}",
+             "explanation": f"[DEMO] Объяснение концепции {i + 1} "
+                            f"(предмет «{subject_name}»).",
+             "example": f"[DEMO] Пример применения концепции {i + 1}."}
+            for i in range(3)],
+        "summary": f"[DEMO] Краткое резюме по теме «{topic}».",
+    }
+
+
+def generate_theory(subject_name: str, topic: str, teacher_id: int | None = None) -> dict:
+    """Сгенерировать теоретический материал (определения + концепции)."""
+    prompt = (
+        f"Составь теоретический материал по теме «{topic}» предмета "
+        f"«{subject_name}». 4–7 ключевых определений, 3–5 концепций с объяснением "
+        f"и примером. Русский язык, академический стиль.\n\n"
+        "Верни ОТВЕТ СТРОГО в формате JSON без пояснений и markdown:\n"
+        '{\n  "title": "string",\n'
+        '  "definitions": [{"term": "string", "definition": "string"}],\n'
+        '  "concepts": [{"name": "string", "explanation": "string", "example": "string"}],\n'
+        '  "summary": "string"\n}\n'
+    )
+    return _generate_structured(
+        prompt, _validate_theory, lambda: _demo_theory(subject_name, topic),
+        temperature=0.5, teacher_id=teacher_id, label="теорию")
+
+
 def score_attempt(test_data: dict, answers: dict) -> tuple[float, list[dict]]:
     """Автопроверка прохождения теста.
 

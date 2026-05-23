@@ -1,45 +1,49 @@
 {% extends "base.html" %}
 {% block title %}{{ material.topic }}{% endblock %}
 {% block content %}
-<h4>{{ test_data.title }}</h4>
 <p class="text-muted">
     Предмет: {{ material.subject.name }} · Тип: {{ material.type_label }}
     {% if material.ai_model_used %}· Модель: {{ material.ai_model_used }}{% endif %}
-    · Всего баллов: {{ test.total_points if test }}
+    {% if test %}· Всего баллов: {{ test.total_points }}{% endif %}
 </p>
 
-<h6 class="mt-4">Вопросы</h6>
-<ol>
-    {% for q in test_data.questions %}
-    <li class="mb-2">
-        {{ q.text }} <span class="text-muted small">({{ q.points }} б.)</span>
-        <ul>
-            {% for opt in q.options %}
-            <li{% if loop.index0 == q.correct_index %} class="text-success fw-bold"{% endif %}>
-                {{ opt }}{% if loop.index0 == q.correct_index %} ✓{% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </li>
-    {% endfor %}
-</ol>
+{% if material.type == 'test' %}
+    <h4>{{ test_data.title }}</h4>
+    <h6 class="mt-4">Вопросы</h6>
+    <ol>
+        {% for q in test_data.questions %}
+        <li class="mb-2">
+            {{ q.text }} <span class="text-muted small">({{ q.points }} б.)</span>
+            <ul>
+                {% for opt in q.options %}
+                <li{% if loop.index0 == q.correct_index %} class="text-success fw-bold"{% endif %}>
+                    {{ opt }}{% if loop.index0 == q.correct_index %} ✓{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ol>
 
-<h6 class="mt-4">Прохождения студентов</h6>
-{% if attempts %}
-<table class="table table-sm table-striped">
-    <thead><tr><th>Студент</th><th>Балл</th><th>Дата</th></tr></thead>
-    <tbody>
-    {% for a in attempts %}
-        <tr>
-            <td>{{ a.student.user.full_name }}</td>
-            <td>{{ a.score }} / {{ test.total_points }}</td>
-            <td>{{ a.completed_at.strftime('%d.%m.%Y %H:%M') }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+    <h6 class="mt-4">Прохождения студентов</h6>
+    {% if attempts %}
+    <table class="table table-sm table-striped">
+        <thead><tr><th>Студент</th><th>Балл</th><th>Дата</th></tr></thead>
+        <tbody>
+        {% for a in attempts %}
+            <tr>
+                <td>{{ a.student.user.full_name }}</td>
+                <td>{{ a.score }} / {{ test.total_points }}</td>
+                <td>{{ a.completed_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">Пока никто не проходил.</p>
+    {% endif %}
 {% else %}
-<p class="text-muted">Пока никто не проходил.</p>
+    {% include "_material_content.html" %}
 {% endif %}
 
 <a href="{{ url_for('ai.index') }}" class="btn btn-link">К списку материалов</a>
