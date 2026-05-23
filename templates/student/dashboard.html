@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Дашборд студента{% endblock %}
+{% block content %}
+<h4 class="mb-3">Моя успеваемость</h4>
+
+<div class="row mb-4">
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Средний балл</h6><h2>{{ avg }}</h2></div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Предметов</h6><h2>{{ subject_count }}</h2></div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Пройдено тестов</h6><h2>{{ tests_passed }}</h2></div></div></div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card"><div class="card-body">
+            <h6>Распределение моих оценок</h6>
+            <canvas id="distChart" height="180"></canvas>
+        </div></div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card"><div class="card-body">
+            <h6>Средний по предметам</h6>
+            <table class="table table-sm">
+                <thead><tr><th>Предмет</th><th>Средний</th><th>Оценок</th></tr></thead>
+                <tbody>
+                {% for r in by_subject %}
+                    <tr><td>{{ r.subject }}</td><td>{{ r.avg }}</td><td>{{ r.count }}</td></tr>
+                {% else %}<tr><td colspan="3" class="text-muted">Нет оценок</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+</div>
+
+<div class="card"><div class="card-body">
+    <h6>Последние оценки</h6>
+    <table class="table table-sm table-striped">
+        <thead><tr><th>Предмет</th><th>Балл</th><th>Дата</th><th>Комментарий</th></tr></thead>
+        <tbody>
+        {% for g in last_grades %}
+            <tr><td>{{ g.subject }}</td><td>{{ g.value }}</td>
+                <td>{{ g.date.strftime('%d.%m.%Y') }}</td><td>{{ g.comment }}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">Нет оценок</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('distChart'), {
+    type: 'bar',
+    data: {
+        labels: ['2', '3', '4', '5'],
+        datasets: [{
+            label: 'Количество оценок',
+            data: [{{ distribution[2] }}, {{ distribution[3] }}, {{ distribution[4] }}, {{ distribution[5] }}],
+            backgroundColor: '#0d6efd'
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+</script>
+{% endblock %}

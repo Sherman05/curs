@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Дашборд преподавателя{% endblock %}
+{% block content %}
+<h4 class="mb-3">Мои показатели</h4>
+
+<div class="row mb-4">
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Предметов</h6><h2>{{ subject_count }}</h2></div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Студентов</h6><h2>{{ student_count }}</h2></div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <h6 class="text-muted">Средний по группам</h6><h2>{{ overall_avg }}</h2></div></div></div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card"><div class="card-body">
+            <h6>Средний балл по группам</h6>
+            <canvas id="groupChart" height="180"></canvas>
+        </div></div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card"><div class="card-body">
+            <h6>Мои предметы</h6>
+            <table class="table table-sm">
+                <thead><tr><th>Предмет</th><th>Средний</th><th>Студентов</th></tr></thead>
+                <tbody>
+                {% for r in subjects %}
+                    <tr><td>{{ r.subject }}</td><td>{{ r.avg }}</td><td>{{ r.student_count }}</td></tr>
+                {% else %}<tr><td colspan="3" class="text-muted">Нет предметов</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+</div>
+
+<div class="card"><div class="card-body">
+    <h6>Группа риска (средний &lt; 3.5)</h6>
+    <table class="table table-sm table-striped">
+        <thead><tr><th>Студент</th><th>Группа</th><th>Средний</th></tr></thead>
+        <tbody>
+        {% for r in at_risk %}
+            <tr class="table-warning"><td>{{ r.full_name }}</td><td>{{ r.group }}</td><td>{{ r.avg }}</td></tr>
+        {% else %}<tr><td colspan="3" class="text-muted">Нет студентов в группе риска</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('groupChart'), {
+    type: 'bar',
+    data: {
+        labels: [{% for g in groups %}'{{ g.group_name }}',{% endfor %}],
+        datasets: [{
+            label: 'Средний балл',
+            data: [{% for g in groups %}{{ g.avg }},{% endfor %}],
+            backgroundColor: '#0d6efd'
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true, max: 5 } } }
+});
+</script>
+{% endblock %}

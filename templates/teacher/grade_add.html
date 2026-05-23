@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Добавить оценку{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h4 class="mb-3">Добавить оценку</h4>
+        <p class="text-muted">
+            Студент: <strong>{{ student.user.full_name }}</strong> ·
+            Предмет: <strong>{{ subject.name }}</strong>
+        </p>
+        <form method="POST" action="{{ url_for('teacher.grade_add', subject_id=subject.id, student_id=student.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label class="form-label">Балл (2–5)</label>
+                <select name="value" class="form-select" required>
+                    <option value="5">5</option><option value="4">4</option>
+                    <option value="3">3</option><option value="2">2</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Дата</label>
+                <input type="date" name="date" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Комментарий</label>
+                <input type="text" name="comment" class="form-control"
+                       placeholder="например: Контрольная">
+            </div>
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{{ url_for('teacher.grades_list', subject_id=subject.id) }}"
+               class="btn btn-link">Назад</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

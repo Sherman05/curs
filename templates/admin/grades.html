@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Все оценки{% endblock %}
+{% block content %}
+<h4 class="mb-3">Все оценки</h4>
+
+<table class="table table-sm table-striped">
+    <thead><tr><th>#</th><th>Студент</th><th>Предмет</th><th>Балл</th><th>Дата</th><th>Комментарий</th><th></th></tr></thead>
+    <tbody>
+    {% for g in pagination.items %}
+        <tr>
+            <td>{{ g.id }}</td>
+            <td>{{ g.student.user.full_name }}</td>
+            <td>{{ g.subject.name }}</td>
+            <td>{{ g.value }}</td>
+            <td>{{ g.date.strftime('%d.%m.%Y') }}</td>
+            <td>{{ g.comment }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('admin.grade_delete', grade_id=g.id, page=pagination.page) }}"
+                      style="display:inline" onsubmit="return confirm('Удалить оценку?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.grades', page=pagination.prev_num) }}">←</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link">
+            Стр. {{ pagination.page }} из {{ pagination.pages }}</span></li>
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.grades', page=pagination.next_num) }}">→</a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}

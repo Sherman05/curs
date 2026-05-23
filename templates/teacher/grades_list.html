@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Оценки{% endblock %}
+{% block content %}
+<h4 class="mb-3">Оценки по моим предметам</h4>
+
+<div class="mb-3">
+    {% for s in subjects %}
+        <a href="{{ url_for('teacher.grades_list', subject_id=s.id) }}"
+           class="btn btn-sm {% if subject and subject.id == s.id %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            {{ s.name }}
+        </a>
+    {% else %}
+        <div class="alert alert-info">За вами не закреплено предметов.</div>
+    {% endfor %}
+</div>
+
+{% if subject %}
+<h6>Предмет: {{ subject.name }}</h6>
+<table class="table table-sm table-striped">
+    <thead><tr><th>Студент</th><th>Оценки</th><th></th></tr></thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            <td>{{ row.student.user.full_name }} ({{ row.student.group.name }})</td>
+            <td>
+                {% for g in row.grades %}
+                    <span class="badge bg-secondary">
+                        {{ g.value }}
+                        <form method="POST" action="{{ url_for('teacher.grade_delete', grade_id=g.id) }}"
+                              style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-link text-white p-0" title="Удалить">×</button>
+                        </form>
+                    </span>
+                {% endfor %}
+            </td>
+            <td>
+                <a href="{{ url_for('teacher.grade_add', subject_id=subject.id, student_id=row.student.id) }}"
+                   class="btn btn-sm btn-success">+ Оценка</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="3" class="text-muted">По этому предмету ещё нет оценок.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">Выберите предмет, чтобы увидеть студентов и оценки.</p>
+{% endif %}
+{% endblock %}

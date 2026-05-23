@@ -22,7 +22,7 @@ from flask_login import current_user, login_required
 
 from models import db, Grade, Material, Student, Test, TestAttempt
 from models.ai_module import MATERIAL_TEST
-from services import ai_service
+from services import ai_service, analytics
 from utils.decorators import student_required
 
 logger = logging.getLogger(__name__)
@@ -52,8 +52,27 @@ def _attempt_for(student: Student, test: Test) -> TestAttempt | None:
 @login_required
 @student_required
 def index():
-    # TODO: дашборд студента (оценки, средний балл) — следующий этап.
-    return render_template("placeholder.html", title="Кабинет студента", module="student")
+    return redirect(url_for("student.dashboard"))
+
+
+@bp.route("/dashboard")
+@login_required
+@student_required
+def dashboard():
+    """Дашборд студента: средний балл, распределение, оценки по предметам."""
+    student = _current_student()
+    s = db.session
+    by_subject = analytics.student_avg_by_subject(s, student.id)
+    dist = analytics.grade_distribution(s, scope="student", scope_id=student.id)
+    return render_template(
+        "student/dashboard.html",
+        avg=analytics.student_avg(s, student.id),
+        subject_count=len(by_subject),
+        tests_passed=analytics.passed_tests_count(s, student.id),
+        by_subject=by_subject,
+        distribution=dist,
+        last_grades=analytics.student_grades(s, student.id, limit=10),
+    )
 
 
 @bp.route("/tests")

@@ -15,12 +15,14 @@
             <div class="navbar-nav">
                 {% if current_user.is_authenticated %}
                     {% if current_user.is_admin %}
-                        <a class="nav-link" href="{{ url_for('admin.index') }}">Панель админа</a>
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Дашборд</a>
+                        <a class="nav-link" href="{{ url_for('admin.grades') }}">Оценки</a>
                     {% elif current_user.is_teacher %}
-                        <a class="nav-link" href="{{ url_for('teacher.index') }}">Кабинет</a>
+                        <a class="nav-link" href="{{ url_for('teacher.dashboard') }}">Дашборд</a>
+                        <a class="nav-link" href="{{ url_for('teacher.grades_list') }}">Оценки</a>
                         <a class="nav-link" href="{{ url_for('ai.index') }}">Материалы</a>
                     {% else %}
-                        <a class="nav-link" href="{{ url_for('student.index') }}">Кабинет</a>
+                        <a class="nav-link" href="{{ url_for('student.dashboard') }}">Дашборд</a>
                         <a class="nav-link" href="{{ url_for('student.tests_list') }}">Тесты</a>
                     {% endif %}
                     <span class="navbar-text text-white me-3">
