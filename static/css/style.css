@@ -1,0 +1,15 @@
+/* style.css — пользовательские стили поверх Bootstrap 5. */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.card-title {
+    font-weight: 600;
+}

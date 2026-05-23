@@ -1,0 +1,24 @@
+# ===== Веб-фреймворк и БД =====
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.1            # формы + CSRF-токены
+Flask-Migrate==4.0.7        # миграции БД (alembic)
+SQLAlchemy==2.0.36
+WTForms==3.1.2
+email-validator==2.2.0      # валидация email в формах
+
+# ===== Безопасность / окружение =====
+Werkzeug==3.0.4             # хеширование паролей
+python-dotenv==1.0.1        # загрузка переменных из .env
+
+# ===== Аналитика и отчёты =====
+pandas==2.2.3               # расчёты статистики, импорт CSV
+openpyxl==3.1.5             # экспорт в Excel
+reportlab==4.2.5            # экспорт в PDF
+
+# ===== AI-модуль =====
+anthropic==0.39.0           # Claude API (Sonnet / Haiku)
+
+# ===== Тестовые данные =====
+Faker==30.8.2               # генерация ФИО, email и т.п.

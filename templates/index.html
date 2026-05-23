@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Главная — ИАС мониторинга успеваемости{% endblock %}
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3">
+    <h1 class="display-6">Информационно-аналитическая система мониторинга успеваемости</h1>
+    <p class="lead">С интегрированным AI-модулем генерации учебных материалов.</p>
+    <hr>
+    <p>Статус: <strong>Этап 1 — инициализация проекта завершена.</strong></p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Модуль 1 — Аналитика</h5>
+                <p class="card-text">Оценки, дашборды, графики, отчёты.</p>
+                <a href="{{ url_for('teacher.index') }}" class="btn btn-outline-primary btn-sm">Преподаватель</a>
+                <a href="{{ url_for('student.index') }}" class="btn btn-outline-primary btn-sm">Студент</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Модуль 2 — AI-генератор</h5>
+                <p class="card-text">Генерация материалов и тестов через Claude.</p>
+                <a href="{{ url_for('ai.index') }}" class="btn btn-outline-primary btn-sm">Открыть</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Модуль 3 — Адаптивное обучение</h5>
+                <p class="card-text">Авто-генерация задач для группы риска.</p>
+                <a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary btn-sm">Администратор</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
