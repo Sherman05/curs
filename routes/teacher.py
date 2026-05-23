@@ -6,18 +6,21 @@ routes/teacher.py — Кабинет преподавателя: дашборд 
 """
 import logging
 from datetime import date, datetime
+from io import BytesIO
 
 from flask import (
-    Blueprint, abort, flash, redirect, render_template, request, url_for,
+    Blueprint, abort, flash, redirect, render_template, request, send_file, url_for,
 )
 from flask_login import current_user, login_required
 
-from models import db, Grade, Student, Subject, Teacher
-from services import analytics
+from models import db, Grade, Group, Student, Subject, Teacher
+from services import analytics, export
 from utils.decorators import teacher_required
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("teacher", __name__, url_prefix="/teacher")
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 def _current_teacher() -> Teacher:
@@ -137,6 +140,30 @@ def grade_add():
             flash(f"Ошибка: {e}", "danger")
 
     return render_template("teacher/grade_add.html", subject=subject, student=student)
+
+
+@bp.route("/export/group/<int:group_id>")
+@login_required
+@teacher_required
+def export_group(group_id: int):
+    """Excel-отчёт по группе. Только свои группы (где препод ведёт предмет)."""
+    teacher = _current_teacher()
+    group = db.session.get(Group, group_id)
+    if group is None:
+        abort(404)
+    # Проверка: препод ведёт предмет хотя бы у одного студента этой группы.
+    teaches = (db.session.query(Grade.id)
+               .join(Subject, Subject.id == Grade.subject_id)
+               .join(Student, Student.id == Grade.student_id)
+               .filter(Subject.teacher_id == teacher.id,
+                       Student.group_id == group_id).first())
+    if teaches is None:
+        abort(403)
+
+    data = export.export_group_performance(group_id)
+    fname = f"group_{group.name}_{date.today().isoformat()}.xlsx"
+    return send_file(BytesIO(data), mimetype=XLSX_MIME,
+                     as_attachment=True, download_name=fname)
 
 
 @bp.route("/grades/<int:grade_id>/delete", methods=["POST"])

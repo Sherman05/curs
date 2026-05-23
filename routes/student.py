@@ -14,9 +14,11 @@ routes/student.py — Кабинет студента: прохождение т
 """
 import json
 import logging
+from datetime import date
+from io import BytesIO
 
 from flask import (
-    Blueprint, abort, flash, redirect, render_template, request, url_for,
+    Blueprint, abort, flash, redirect, render_template, request, send_file, url_for,
 )
 from flask_login import current_user, login_required
 
@@ -26,8 +28,10 @@ from models import (
     db, Grade, Material, RemedialAssignment, Student, Subject, Test, TestAttempt,
 )
 from models.ai_module import MATERIAL_TEST
-from services import ai_service, analytics
+from services import ai_service, analytics, export
 from utils.decorators import student_required
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("student", __name__, url_prefix="/student")
@@ -209,6 +213,19 @@ def _subject_avg(student_id: int, subject_id: int) -> float | None:
     return (db.session.query(func.avg(Grade.value))
             .filter(Grade.student_id == student_id,
                     Grade.subject_id == subject_id).scalar())
+
+
+@bp.route("/export/record")
+@login_required
+@student_required
+def export_record():
+    """Скачать зачётную книжку (Excel) — только свою."""
+    student = _current_student()
+    data = export.export_student_record(student.id)
+    lastname = (current_user.full_name or "student").split()[0]
+    fname = f"record_{lastname}_{date.today().isoformat()}.xlsx"
+    return send_file(BytesIO(data), mimetype=XLSX_MIME,
+                     as_attachment=True, download_name=fname)
 
 
 @bp.route("/remedial")

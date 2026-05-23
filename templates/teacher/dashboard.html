@@ -34,6 +34,22 @@
     </div>
 </div>
 
+<div class="card mb-4"><div class="card-body">
+    <h6>Мои группы</h6>
+    <table class="table table-sm">
+        <thead><tr><th>Группа</th><th>Средний</th><th>Студентов</th><th></th></tr></thead>
+        <tbody>
+        {% for g in groups %}
+            <tr>
+                <td>{{ g.group_name }}</td><td>{{ g.avg }}</td><td>{{ g.student_count }}</td>
+                <td><a href="{{ url_for('teacher.export_group', group_id=g.group_id) }}"
+                       class="btn btn-sm btn-outline-success">Экспорт Excel</a></td>
+            </tr>
+        {% else %}<tr><td colspan="4" class="text-muted">Нет групп</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div></div>
+
 <div class="card"><div class="card-body">
     <h6>Группа риска (средний &lt; 3.5)</h6>
     <table class="table table-sm table-striped">

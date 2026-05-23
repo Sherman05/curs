@@ -2,18 +2,22 @@
 routes/admin.py — Панель администратора: общий дашборд + просмотр оценок.
 """
 import logging
+from datetime import date
+from io import BytesIO
 
 from flask import (
-    Blueprint, abort, flash, redirect, render_template, request, url_for,
+    Blueprint, abort, flash, redirect, render_template, request, send_file, url_for,
 )
 from flask_login import login_required
 
 from models import db, Grade
-from services import analytics
+from services import analytics, export
 from utils.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 @bp.route("/")
@@ -48,6 +52,17 @@ def grades():
                   .order_by(Grade.date.desc())
                   .paginate(page=page, per_page=50, error_out=False))
     return render_template("admin/grades.html", pagination=pagination)
+
+
+@bp.route("/export/overall")
+@login_required
+@admin_required
+def export_overall():
+    """Скачать общий отчёт (Excel, 4 листа)."""
+    data = export.export_overall_report()
+    fname = f"overall_report_{date.today().isoformat()}.xlsx"
+    return send_file(BytesIO(data), mimetype=XLSX_MIME,
+                     as_attachment=True, download_name=fname)
 
 
 @bp.route("/grades/<int:grade_id>/delete", methods=["POST"])

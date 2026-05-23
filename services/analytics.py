@@ -106,6 +106,7 @@ def teacher_groups_overview(session, teacher_id: int) -> list[dict]:
     'Ведёт в группе' = у студентов группы есть оценки по предметам препода.
     """
     rows = (session.query(
+                Group.id,
                 Group.name,
                 func.avg(Grade.value),
                 func.count(func.distinct(Student.id)))
@@ -116,8 +117,9 @@ def teacher_groups_overview(session, teacher_id: int) -> list[dict]:
             .group_by(Group.id)
             .order_by(Group.name)
             .all())
-    return [{"group_name": name, "avg": _round(avg), "student_count": cnt}
-            for name, avg, cnt in rows]
+    return [{"group_id": gid, "group_name": name, "avg": _round(avg),
+             "student_count": cnt}
+            for gid, name, avg, cnt in rows]
 
 
 def teacher_subjects_overview(session, teacher_id: int) -> list[dict]:
