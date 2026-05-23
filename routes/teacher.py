@@ -1,14 +1,19 @@
 """
 routes/teacher.py — Кабинет преподавателя.
 
-ЗАГЛУШКА Этапа 1. Реальная логика — на Этапе 2.
+Дашборд наполняется на следующем шаге (аналитика). Сейчас — защита доступа.
 """
 from flask import Blueprint, render_template
+from flask_login import login_required
+
+from utils.decorators import teacher_required
 
 bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 
 
 @bp.route("/")
+@login_required
+@teacher_required
 def index():
-    # TODO (Этап 2): дашборд преподавателя — группы, оценки, аналитика.
+    # TODO: дашборд преподавателя — группы, оценки, аналитика.
     return render_template("placeholder.html", title="Кабинет преподавателя", module="teacher")

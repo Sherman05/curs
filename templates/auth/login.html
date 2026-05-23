@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Вход — ИАС Успеваемость{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Вход в систему</h4>
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}  {# CSRF-токен #}
+                    <div class="mb-3">
+                        {{ form.login.label(class="form-label") }}
+                        {{ form.login(class="form-control") }}
+                        {% for e in form.login.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+                <hr>
+                <p class="text-center mb-0">
+                    Нет аккаунта? <a href="{{ url_for('auth.register') }}">Регистрация студента</a>
+                </p>
+            </div>
+        </div>
+        <p class="text-muted small text-center mt-2">
+            Демо: admin / teacher1 / student1 — пароль <code>password</code>
+        </p>
+    </div>
+</div>
+{% endblock %}

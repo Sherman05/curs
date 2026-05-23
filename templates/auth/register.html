@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Регистрация студента — ИАС Успеваемость{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Регистрация студента</h4>
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}  {# CSRF-токен #}
+                    {% for field in [form.login, form.full_name, form.email,
+                                     form.student_card_number] %}
+                        <div class="mb-3">
+                            {{ field.label(class="form-label") }}
+                            {{ field(class="form-control") }}
+                            {% for e in field.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="mb-3">
+                        {{ form.group_id.label(class="form-label") }}
+                        {{ form.group_id(class="form-select") }}
+                        {% for e in form.group_id.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password2.label(class="form-label") }}
+                        {{ form.password2(class="form-control") }}
+                        {% for e in form.password2.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-success w-100") }}
+                </form>
+                <hr>
+                <p class="text-center mb-0">
+                    Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войти</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

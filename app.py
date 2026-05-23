@@ -82,6 +82,12 @@ def create_app(config_name: str | None = None) -> Flask:
         return render_template("index.html")
 
     # --- Обработчики ошибок (понятные сообщения) ---
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("placeholder.html",
+                               title="Доступ запрещён (403)",
+                               module="error"), 403
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template("placeholder.html",

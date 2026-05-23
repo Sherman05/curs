@@ -14,12 +14,20 @@
             <a class="navbar-brand" href="{{ url_for('index') }}">ИАС Успеваемость</a>
             <div class="navbar-nav">
                 {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                        <a class="nav-link" href="{{ url_for('admin.index') }}">Панель админа</a>
+                    {% elif current_user.is_teacher %}
+                        <a class="nav-link" href="{{ url_for('teacher.index') }}">Кабинет</a>
+                    {% else %}
+                        <a class="nav-link" href="{{ url_for('student.index') }}">Кабинет</a>
+                    {% endif %}
                     <span class="navbar-text text-white me-3">
                         {{ current_user.full_name }} ({{ current_user.role }})
                     </span>
-                    <a class="nav-link" href="{{ url_for('auth.login') }}">Выход</a>
+                    <a class="nav-link" href="{{ url_for('auth.logout') }}">Выход</a>
                 {% else %}
                     <a class="nav-link" href="{{ url_for('auth.login') }}">Вход</a>
+                    <a class="nav-link" href="{{ url_for('auth.register') }}">Регистрация</a>
                 {% endif %}
             </div>
         </div>
