@@ -149,12 +149,12 @@ def _demo_test(subject_name: str, topic: str, question_count: int) -> dict:
     return {"title": f"Тест по теме «{topic}»", "questions": questions}
 
 
-def _call_model(client, prompt: str) -> tuple[str, int]:
+def _call_model(client, prompt: str, temperature: float = 0.3) -> tuple[str, int]:
     """Вызвать Claude, вернуть (текст ответа, количество токенов)."""
     msg = client.messages.create(
         model=current_app.config["AI_MODEL"],   # claude-sonnet-4-5
         max_tokens=2000,
-        temperature=0.3,
+        temperature=temperature,
         messages=[{"role": "user", "content": prompt}],
     )
     text = "".join(block.text for block in msg.content if block.type == "text")
@@ -216,12 +216,115 @@ def generate_test(subject_name: str, topic: str, question_count: int = 10,
     return data
 
 
-def generate_remedial_tasks(subject_name: str, weak_topics: list[str]) -> dict:
-    """Сгенерировать дополнительные задачи по слабым темам (адаптивка).
+def _build_remedial_prompt(subject_name: str, weak_topics, count: int) -> str:
+    """Промпт для генерации доп. задач (адаптивное обучение)."""
+    topics_line = (
+        f"Слабые темы студента: {', '.join(weak_topics)}. Сосредоточься на них.\n"
+        if weak_topics else
+        "Конкретные слабые темы не указаны — дай задачи общего характера "
+        "по ключевым разделам предмета.\n"
+    )
+    return (
+        f"Ты помогаешь студенту, у которого средний балл по предмету "
+        f"«{subject_name}» ниже 3.5. Сгенерируй {count} практических задач "
+        f"для отработки.\n"
+        + topics_line +
+        "Для каждой задачи дай: тему, текст задачи, подсказку и ожидаемый "
+        "подход к решению.\n\n"
+        "Верни ОТВЕТ СТРОГО в формате JSON без пояснений и markdown:\n"
+        '{\n'
+        '  "subject": "Название предмета",\n'
+        '  "tasks": [\n'
+        '    {"topic": "Тема", "text": "Условие задачи", '
+        '"hint": "Подсказка", "approach": "Подход к решению"}\n'
+        '  ]\n'
+        '}\n'
+    )
 
-    TODO (Этап 5): реализовать генерацию доп. задач для группы риска.
+
+def _validate_remedial(data: dict, expected_count: int) -> dict:
+    """Проверить и нормализовать структуру доп. задач."""
+    if not isinstance(data, dict):
+        raise ValueError("Ответ не является объектом JSON.")
+    subject = str(data.get("subject") or "").strip() or "Предмет"
+    tasks = data.get("tasks")
+    if not isinstance(tasks, list) or not tasks:
+        raise ValueError("Отсутствует непустой список задач.")
+    normalized = []
+    for i, t in enumerate(tasks):
+        text = str(t.get("text") or "").strip()
+        if not text:
+            raise ValueError(f"Задача {i + 1}: пустой текст.")
+        normalized.append({
+            "topic": str(t.get("topic") or "Общая тема").strip(),
+            "text": text,
+            "hint": str(t.get("hint") or "").strip(),
+            "approach": str(t.get("approach") or "").strip(),
+        })
+    return {"subject": subject, "tasks": normalized}
+
+
+def _demo_remedial(subject_name: str, count: int) -> dict:
+    """Заглушка с правдоподобными задачами (для работы без ключа)."""
+    tasks = [{
+        "topic": f"Раздел {i + 1} предмета «{subject_name}»",
+        "text": f"[DEMO] Практическая задача {i + 1} по предмету "
+                f"«{subject_name}» для отработки слабого материала.",
+        "hint": "Вспомните базовые определения и разберите похожий пример из лекции.",
+        "approach": "Разбейте задачу на шаги, примените изученную формулу/алгоритм, "
+                    "проверьте результат.",
+    } for i in range(count)]
+    return {"subject": subject_name, "tasks": tasks}
+
+
+def generate_remedial_tasks(subject_name: str, weak_topics: list[str] | None = None,
+                            count: int = 5, teacher_id: int | None = None) -> dict:
+    """Сгенерировать персональные доп. задачи по предмету (адаптивка).
+
+    Возвращает dict: {"subject": str, "tasks": [{topic,text,hint,approach}]}.
+    Бросает RuntimeError при неустранимой ошибке AI.
     """
-    raise NotImplementedError("Адаптивное обучение — Этап 5.")
+    prompt = _build_remedial_prompt(subject_name, weak_topics, count)
+
+    # --- Demo-режим (нет ключа) ---
+    if not _is_configured():
+        logger.warning("AI не настроен (нет ключа) — генерирую demo-задачи.")
+        data = _demo_remedial(subject_name, count)
+        _log_generation(teacher_id, prompt, json.dumps(data, ensure_ascii=False), 0)
+        return _validate_remedial(data, count)
+
+    # --- Боевой режим ---
+    try:
+        client = _get_client()
+    except Exception as e:
+        logger.exception("Не удалось создать клиент Anthropic.")
+        raise RuntimeError("AI-сервис недоступен: проверьте пакет anthropic "
+                           "и ключ ANTHROPIC_API_KEY.") from e
+
+    raw, tokens = "", 0
+    try:
+        raw, tokens = _call_model(client, prompt, temperature=0.4)
+        data = _validate_remedial(_extract_json(raw), count)
+    except Exception as first_err:
+        logger.warning("Ответ AI (задачи) не распарсился (%s). Повтор...", first_err)
+        try:
+            retry = prompt + "\n\nВАЖНО: верни ТОЛЬКО валидный JSON, без текста."
+            raw2, tokens2 = _call_model(client, retry, temperature=0.4)
+            tokens += tokens2
+            raw = raw + "\n---retry---\n" + raw2
+            data = _validate_remedial(_extract_json(raw2), count)
+        except Exception as e:
+            _log_generation(teacher_id, prompt, f"ОШИБКА: {raw}", tokens)
+            logger.exception("AI не смог сгенерировать корректные задачи.")
+            raise RuntimeError(
+                "Не удалось сгенерировать задачи: модель вернула некорректный "
+                "формат. Попробуйте повторить попытку."
+            ) from e
+
+    _log_generation(teacher_id, prompt, raw, tokens)
+    logger.info("Сгенерировано доп. задач: %d, токенов=%d.",
+                len(data["tasks"]), tokens)
+    return data
 
 
 def score_attempt(test_data: dict, answers: dict) -> tuple[float, list[dict]]:

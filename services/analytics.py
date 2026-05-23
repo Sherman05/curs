@@ -47,6 +47,19 @@ def student_avg_by_subject(session, student_id: int) -> list[dict]:
             for name, avg, cnt in rows]
 
 
+def student_weak_subjects(session, student_id: int) -> list[dict]:
+    """Предметы студента со средним < порога: [{subject_id, subject_name, avg}]."""
+    rows = (session.query(Subject.id, Subject.name, func.avg(Grade.value))
+            .join(Grade, Grade.subject_id == Subject.id)
+            .filter(Grade.student_id == student_id)
+            .group_by(Subject.id)
+            .having(func.avg(Grade.value) < RISK_THRESHOLD)
+            .order_by(func.avg(Grade.value))
+            .all())
+    return [{"subject_id": sid, "subject_name": name, "avg": _round(avg)}
+            for sid, name, avg in rows]
+
+
 def student_grades(session, student_id: int, limit: int | None = None) -> list[dict]:
     """Оценки студента (новые сверху): [{subject, value, date, comment}]."""
     q = (session.query(Subject.name, Grade.value, Grade.date, Grade.comment)

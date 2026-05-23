@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Мои доп. задачи{% endblock %}
+{% block content %}
+<h4 class="mb-3">Дополнительные задачи</h4>
+{% if assignments %}
+<table class="table table-striped">
+    <thead><tr><th>Предмет</th><th>Создано</th><th></th></tr></thead>
+    <tbody>
+    {% for a in assignments %}
+        <tr>
+            <td>{{ a.subject.name }}</td>
+            <td>{{ a.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td><a href="{{ url_for('student.remedial_view', assignment_id=a.id) }}"
+                   class="btn btn-sm btn-outline-primary">Открыть</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">
+    Доп. задач пока нет. Сгенерируйте их на
+    <a href="{{ url_for('student.dashboard') }}">дашборде</a> по слабым предметам.
+</div>
+{% endif %}
+{% endblock %}

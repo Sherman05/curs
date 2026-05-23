@@ -68,6 +68,11 @@ def create_app(config_name: str | None = None) -> Flask:
 
     configure_logging(app)
 
+    # Создаём отсутствующие таблицы при старте (SQLite подхватит новые модели
+    # без миграций; существующие таблицы не трогаются).
+    with app.app_context():
+        db.create_all()
+
     # --- Регистрация blueprint'ов (маршрутов) ---
     from routes import auth, student, teacher, admin, ai_routes
     app.register_blueprint(auth.bp)

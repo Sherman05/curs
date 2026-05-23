@@ -27,6 +27,7 @@ from models.ai_module import (  # noqa: E402
     Test,
     TestAttempt,
     AIGenerationLog,
+    RemedialAssignment,
 )
 
 # Список экспортируемых имён (удобно для `from models import *`).
@@ -43,4 +44,5 @@ __all__ = [
     "Test",
     "TestAttempt",
     "AIGenerationLog",
+    "RemedialAssignment",
 ]

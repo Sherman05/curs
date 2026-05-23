@@ -133,3 +133,24 @@ class AIGenerationLog(db.Model):
 
     def __repr__(self) -> str:
         return f"<AIGenerationLog #{self.id} токенов={self.tokens_used}>"
+
+
+class RemedialAssignment(db.Model):
+    """Персональные доп. задачи (адаптивное обучение, Модуль 3).
+
+    Генерируются AI для студента, у которого средний балл по предмету < 3.5.
+    content_json — сериализованный результат генерации (см. ai_service).
+    """
+    __tablename__ = "remedial_assignments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey("subjects.id"), nullable=False)
+    content_json = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    student = db.relationship("Student", backref="remedial_assignments")
+    subject = db.relationship("Subject")
+
+    def __repr__(self) -> str:
+        return f"<RemedialAssignment студ.{self.student_id} предм.{self.subject_id}>"

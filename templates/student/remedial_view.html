@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Доп. задачи: {{ data.subject }}{% endblock %}
+{% block content %}
+<h4 class="mb-1">Доп. задачи по предмету: {{ data.subject }}</h4>
+<p class="text-muted">Создано: {{ assignment.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+
+{% for t in data.tasks %}
+{% set i = loop.index %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="card-subtitle text-muted mb-2">Задача {{ i }} · {{ t.topic }}</h6>
+        <p class="card-text">{{ t.text }}</p>
+        {% if t.hint %}
+        <p class="mb-2">
+            <a class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse"
+               href="#hint{{ i }}">Показать подсказку</a>
+        </p>
+        <div class="collapse" id="hint{{ i }}">
+            <div class="alert alert-light border"><strong>Подсказка:</strong> {{ t.hint }}</div>
+        </div>
+        {% endif %}
+        {% if t.approach %}
+        <p class="small text-muted mb-0"><strong>Подход:</strong> {{ t.approach }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<a href="{{ url_for('student.remedial_list') }}" class="btn btn-link">К списку доп. задач</a>
+{% endblock %}
