@@ -43,7 +43,7 @@
     <p class="text-muted">Пока никто не проходил.</p>
     {% endif %}
 {% else %}
-    {% include "_material_content.html" %}
+    <div class="reading">{% include "_material_content.html" %}</div>
 {% endif %}
 
 <a href="{{ url_for('ai.index') }}" class="btn btn-link">К списку материалов</a>

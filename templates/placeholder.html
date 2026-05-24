@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
+{% if module == 'error' %}
+<div class="error-page">
+    <div class="emoji">
+        {% if '403' in title %}🔒{% elif '404' in title %}🔍{% elif '500' in title %}⚠️{% else %}😕{% endif %}
+    </div>
+    <h2>{{ title }}</h2>
+    <p class="text-muted">
+        {% if '403' in title %}У вас нет доступа к этой странице.
+        {% elif '404' in title %}Страница не найдена или была перемещена.
+        {% elif '500' in title %}Произошла внутренняя ошибка. Попробуйте позже.
+        {% else %}Что-то пошло не так.{% endif %}
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">На главную</a>
+</div>
+{% else %}
 <div class="alert alert-info">
     <h4>{{ title }}</h4>
-    <p>Модуль «{{ module }}» — заглушка Этапа 1. Логика будет добавлена на Этапе 2.</p>
+    <p>Раздел «{{ module }}» в разработке.</p>
 </div>
+{% endif %}
 {% endblock %}

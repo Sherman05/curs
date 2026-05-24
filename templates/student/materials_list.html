@@ -3,21 +3,23 @@
 {% block content %}
 <h4 class="mb-3">Учебные материалы</h4>
 {% if materials %}
-<table class="table table-striped">
-    <thead><tr><th>Название</th><th>Тип</th><th>Предмет</th><th>Дата</th><th></th></tr></thead>
-    <tbody>
+<div class="row g-3">
     {% for m in materials %}
-        <tr>
-            <td>{{ m.topic }}</td>
-            <td>{{ m.type_label }}</td>
-            <td>{{ m.subject.name }}</td>
-            <td>{{ m.created_at.strftime('%d.%m.%Y') }}</td>
-            <td><a href="{{ url_for('student.material_view', material_id=m.id) }}"
-                   class="btn btn-sm btn-outline-primary">Читать</a></td>
-        </tr>
+    <div class="col-md-6 col-lg-4">
+        <div class="card list-card h-100">
+            <div class="card-body">
+                <span class="type-icon">{% if m.type == 'lecture' %}📚{% else %}📖{% endif %}</span>
+                <h6 class="mt-2 mb-1">{{ m.topic }}</h6>
+                <p class="text-muted small mb-2">
+                    {{ m.type_label }} · {{ m.subject.name }} · {{ m.created_at.strftime('%d.%m.%Y') }}
+                </p>
+                <a href="{{ url_for('student.material_view', material_id=m.id) }}"
+                   class="btn btn-sm btn-primary">Читать</a>
+            </div>
+        </div>
+    </div>
     {% endfor %}
-    </tbody>
-</table>
+</div>
 {% else %}
 <div class="alert alert-info">Учебных материалов по вашим предметам пока нет.</div>
 {% endif %}

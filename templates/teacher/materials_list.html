@@ -2,26 +2,31 @@
 {% block title %}Мои материалы{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Мои учебные материалы</h4>
-    <a href="{{ url_for('ai.new') }}" class="btn btn-primary">Сгенерировать тест</a>
+    <h4 class="mb-0">Мои учебные материалы</h4>
+    <a href="{{ url_for('ai.new') }}" class="btn btn-primary">+ Сгенерировать материал</a>
 </div>
 
 {% if materials %}
-<table class="table table-striped">
-    <thead><tr><th>Тема</th><th>Тип</th><th>Предмет</th><th>Создан</th><th></th></tr></thead>
+<div class="card"><div class="card-body p-0">
+<table class="table table-hover mb-0">
+    <thead><tr><th class="ps-3">Тема</th><th>Тип</th><th>Предмет</th><th>Создан</th><th></th></tr></thead>
     <tbody>
     {% for m in materials %}
         <tr>
-            <td>{{ m.topic }}</td>
+            <td class="ps-3">
+                {% if m.type == 'test' %}📝{% elif m.type == 'lecture' %}📚{% else %}📖{% endif %}
+                {{ m.topic }}
+            </td>
             <td>{{ m.type_label }}</td>
             <td>{{ m.subject.name }}</td>
             <td>{{ m.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td><a href="{{ url_for('ai.view', material_id=m.id) }}" class="btn btn-sm btn-outline-secondary">Открыть</a></td>
+            <td><a href="{{ url_for('ai.view', material_id=m.id) }}" class="btn btn-sm btn-outline-primary">Открыть</a></td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
+</div></div>
 {% else %}
-<div class="alert alert-info">Материалов пока нет. Сгенерируйте первый тест.</div>
+<div class="alert alert-info">Материалов пока нет. Сгенерируйте первый материал.</div>
 {% endif %}
 {% endblock %}

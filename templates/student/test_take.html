@@ -2,24 +2,51 @@
 {% block title %}{{ test_data.title }}{% endblock %}
 {% block content %}
 <h4 class="mb-3">{{ test_data.title }}</h4>
-<form method="POST" action="{{ url_for('student.test_submit', test_id=test.id) }}">
+
+<div class="quiz-progress">
+    <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted small">Прогресс</span>
+        <span class="text-muted small"><span id="answered">0</span> из {{ test_data.questions|length }} вопросов</span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="quizBar" style="width:0%"></div></div>
+</div>
+
+<form method="POST" action="{{ url_for('student.test_submit', test_id=test.id) }}" id="quizForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for q in test_data.questions %}
     {% set qi = loop.index0 %}
     <div class="card mb-3">
         <div class="card-body">
-            <p class="fw-bold">{{ loop.index }}. {{ q.text }}</p>
+            <p class="fw-bold mb-3">{{ loop.index }}. {{ q.text }}</p>
             {% for opt in q.options %}
             {% set oi = loop.index0 %}
-            <div class="form-check">
+            <label class="test-option" for="q{{ qi }}_{{ oi }}">
                 <input class="form-check-input" type="radio"
                        name="q{{ qi }}" id="q{{ qi }}_{{ oi }}" value="{{ oi }}">
-                <label class="form-check-label" for="q{{ qi }}_{{ oi }}">{{ opt }}</label>
-            </div>
+                {{ opt }}
+            </label>
             {% endfor %}
         </div>
     </div>
     {% endfor %}
     <button type="submit" class="btn btn-success">Завершить тест</button>
 </form>
+{% endblock %}
+{% block scripts %}
+<script>
+// Прогресс-бар: считает, на сколько вопросов дан ответ (без логики проверки).
+(function () {
+    const form = document.getElementById('quizForm');
+    const total = {{ test_data.questions|length }};
+    const bar = document.getElementById('quizBar');
+    const ans = document.getElementById('answered');
+    function update() {
+        const names = new Set();
+        form.querySelectorAll('input[type=radio]:checked').forEach(r => names.add(r.name));
+        ans.textContent = names.size;
+        bar.style.width = (total ? names.size / total * 100 : 0) + '%';
+    }
+    form.addEventListener('change', update);
+})();
+</script>
 {% endblock %}

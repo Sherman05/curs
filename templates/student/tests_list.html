@@ -3,34 +3,33 @@
 {% block content %}
 <h4 class="mb-3">Доступные тесты</h4>
 {% if items %}
-<table class="table table-striped">
-    <thead><tr><th>Тема</th><th>Предмет</th><th>Баллов</th><th>Статус</th><th></th></tr></thead>
-    <tbody>
+<div class="row g-3">
     {% for it in items %}
-        <tr>
-            <td>{{ it.material.topic }}</td>
-            <td>{{ it.material.subject.name }}</td>
-            <td>{{ it.test.total_points }}</td>
-            <td>
-                {% if it.attempt %}
-                    <span class="badge bg-success">Пройден: {{ it.attempt.score }}</span>
-                {% else %}
-                    <span class="badge bg-secondary">Не пройден</span>
-                {% endif %}
-            </td>
-            <td>
+    <div class="col-md-6 col-lg-4">
+        <div class="card list-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="type-icon">📝</span>
+                    {% if it.attempt %}
+                        <span class="badge bg-success">Пройден: {{ it.attempt.score }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Не пройден</span>
+                    {% endif %}
+                </div>
+                <h6 class="mt-2 mb-1">{{ it.material.topic }}</h6>
+                <p class="text-muted small mb-2">{{ it.material.subject.name }} · {{ it.test.total_points }} б.</p>
                 {% if it.attempt %}
                     <a href="{{ url_for('student.test_result', test_id=it.test.id) }}"
-                       class="btn btn-sm btn-outline-secondary">Результат</a>
+                       class="btn btn-sm btn-outline-primary">Результат</a>
                 {% else %}
                     <a href="{{ url_for('student.test_take', test_id=it.test.id) }}"
                        class="btn btn-sm btn-primary">Пройти</a>
                 {% endif %}
-            </td>
-        </tr>
+            </div>
+        </div>
+    </div>
     {% endfor %}
-    </tbody>
-</table>
+</div>
 {% else %}
 <div class="alert alert-info">Доступных тестов пока нет.</div>
 {% endif %}

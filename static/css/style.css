@@ -1,15 +1,191 @@
-/* style.css — пользовательские стили поверх Bootstrap 5. */
+/* ===== Дизайн-система: фиолетово-синий акцент ===== */
+:root {
+    --primary: #5B5FE6;
+    --primary-dark: #4A4DD1;
+    --bg: #F7F8FC;
+    --card-bg: #FFFFFF;
+    --text: #1A1D2E;
+    --text-secondary: #6B7080;
+    --border: #E5E7F0;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+}
 
 body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
+main { flex: 1 0 auto; }
 
-main {
-    flex: 1 0 auto;
+h1, h2, h3, h4, h5, h6 { color: var(--text); font-weight: 600; }
+a { color: var(--primary); }
+a:hover { color: var(--primary-dark); }
+.text-muted { color: var(--text-secondary) !important; }
+
+/* ===== Navbar ===== */
+.navbar.app-nav {
+    background: #fff !important;
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 0;
 }
-
-.card-title {
+.navbar.app-nav .navbar-brand {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+.navbar.app-nav .nav-link {
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: .4rem .85rem;
+    border-radius: 8px;
+    transition: all .15s;
+}
+.navbar.app-nav .nav-link:hover { color: var(--primary); background: var(--bg); }
+.navbar.app-nav .nav-link.active { color: var(--primary); background: rgba(91,95,230,.08); }
+.role-badge {
+    background: rgba(91,95,230,.1);
+    color: var(--primary);
     font-weight: 600;
+    padding: .35rem .7rem;
+    border-radius: 20px;
+    font-size: .8rem;
 }
+
+/* ===== Карточки ===== */
+.card {
+    border: none;
+    border-radius: 12px;
+    background: var(--card-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+}
+.card-title { font-weight: 600; }
+
+/* Stat-карточки (крупные числа на дашбордах) */
+.card.text-center h2, .card.text-center h3 {
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+}
+.card.text-center h6 {
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-size: .75rem;
+}
+
+/* ===== Кнопки ===== */
+.btn { border-radius: 8px; font-weight: 500; transition: all .15s; }
+.btn-primary { background: var(--primary); border-color: var(--primary); padding: 8px 20px; }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-1px); }
+.btn-outline-primary { color: var(--primary); border-color: var(--primary); }
+.btn-outline-primary:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-1px); }
+.btn-success { background: var(--success); border-color: var(--success); }
+.btn-success:hover { filter: brightness(.93); transform: translateY(-1px); }
+.btn-sm { padding: 5px 14px; }
+
+/* ===== Формы ===== */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(91,95,230,0.1);
+}
+.form-label { font-weight: 500; color: var(--text); margin-bottom: .35rem; }
+
+/* ===== Таблицы ===== */
+.table { --bs-table-bg: transparent; color: var(--text); }
+.table thead th {
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-size: .75rem;
+    border-bottom: 1px solid var(--border);
+}
+.table td, .table th { border-color: var(--border); vertical-align: middle; }
+.table-hover tbody tr:hover { background: var(--bg); }
+.table-striped > tbody > tr:nth-of-type(odd) > * { --bs-table-accent-bg: #FBFBFE; }
+
+/* ===== Бейджи ===== */
+.badge.bg-secondary { background: var(--text-secondary) !important; }
+.badge.bg-success { background: var(--success) !important; }
+.badge.bg-warning { background: var(--warning) !important; }
+
+/* ===== Алерты ===== */
+.alert { border-radius: 10px; border: none; }
+.alert-info { background: rgba(91,95,230,.08); color: var(--primary-dark); }
+
+/* ===== Hero (главная) ===== */
+.hero {
+    text-align: center;
+    padding: 3.5rem 1rem 2.5rem;
+}
+.hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: .8rem; }
+.hero p.lead { color: var(--text-secondary); font-size: 1.15rem; max-width: 640px; margin: 0 auto 1.5rem; }
+.feature-icon {
+    width: 56px; height: 56px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 14px;
+    background: rgba(91,95,230,.1);
+    color: var(--primary);
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+}
+
+/* ===== Карточки-списки (тесты/материалы) ===== */
+.list-card { transition: transform .15s, box-shadow .15s; }
+.list-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.list-card .type-icon { font-size: 1.6rem; }
+
+/* ===== Прохождение теста: варианты как кликабельные блоки ===== */
+.test-option {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all .12s;
+}
+.test-option:hover { border-color: var(--primary); background: var(--bg); }
+.test-option input { margin-right: 10px; }
+.quiz-progress { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: .5rem 0 1rem; }
+.quiz-progress .progress { height: 8px; border-radius: 6px; }
+.quiz-progress .progress-bar { background: var(--primary); }
+
+/* ===== Чтение лекции/теории ===== */
+.reading { max-width: 760px; margin: 0 auto; }
+.reading h6 {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: .4rem;
+    margin-top: 1.6rem;
+}
+.reading p { line-height: 1.7; }
+.key-points {
+    padding: 12px 16px;
+    background: var(--bg);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    margin: .5rem 0 1rem;
+}
+.key-points ul { margin: 0; padding-left: 1.1rem; }
+.reading dt { font-weight: 600; color: var(--text); margin-top: .6rem; }
+.reading dd { color: var(--text-secondary); margin-bottom: .5rem; }
+
+/* ===== Страница ошибки ===== */
+.error-page { text-align: center; padding: 4rem 1rem; }
+.error-page .emoji { font-size: 5rem; line-height: 1; }
+.error-page h2 { margin: 1rem 0 .5rem; }
+
+/* ===== Footer ===== */
+footer { color: var(--text-secondary); }

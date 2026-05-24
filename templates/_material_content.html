@@ -7,7 +7,7 @@
         <h6>{{ loop.index }}. {{ sec.heading }}</h6>
         <p style="white-space: pre-line">{{ sec.content }}</p>
         {% if sec.key_points %}
-        <ul>{% for kp in sec.key_points %}<li>{{ kp }}</li>{% endfor %}</ul>
+        <div class="key-points"><ul>{% for kp in sec.key_points %}<li>{{ kp }}</li>{% endfor %}</ul></div>
         {% endif %}
     </div>
     {% endfor %}
