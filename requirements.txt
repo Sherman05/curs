@@ -20,3 +20,6 @@ anthropic==0.39.0           # Claude API (Sonnet / Haiku)
 
 # ===== Тестовые данные =====
 Faker==30.8.2               # генерация ФИО, email и т.п.
+
+# ===== Деплой (продакшен-сервер) =====
+gunicorn==23.0.0            # WSGI-сервер для хостинга (Render/Railway)

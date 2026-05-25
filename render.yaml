@@ -1,0 +1,19 @@
+# render.yaml — конфигурация деплоя на Render.com (Blueprint).
+# Render прочитает этот файл и развернёт веб-сервис из репозитория.
+services:
+  - type: web
+    name: akademii
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # Заполняем БД тестовыми данными (seed идемпотентен — повторно не дублирует),
+    # затем запускаем gunicorn на порту, который выдаёт Render ($PORT).
+    startCommand: flask --app app seed && gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true        # Render сам сгенерирует секрет
+      - key: FLASK_CONFIG
+        value: production
+      # AI-модуль работает в demo-режиме без ключа. Чтобы включить реальную
+      # генерацию — добавьте ANTHROPIC_API_KEY в настройках сервиса вручную
+      # (НЕ коммитьте ключ в репозиторий).
